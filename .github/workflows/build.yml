@@ -101,6 +101,8 @@ jobs:
             fi
           } >> "$GITHUB_ENV"
           mkdir -p "$RUNNER_TEMP/hxcpp-cache"
+          export LD_LIBRARY_PATH="$tools/neko:${LD_LIBRARY_PATH:-}"
+          export DYLD_LIBRARY_PATH="$tools/neko:${DYLD_LIBRARY_PATH:-}"
           "$tools/haxe/haxelib" setup "$tools/haxelib" > /dev/null
           "$tools/haxe/haxe" --version
           "$tools/neko/neko" -version

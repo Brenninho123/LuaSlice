@@ -15,13 +15,13 @@ concurrency:
 
 jobs:
   ios:
-    runs-on: macos-15-intel
+    runs-on: macos-15
     timeout-minutes: 180
     defaults:
       run:
         shell: bash
     env:
-      HXCPP_COMPILE_THREADS: '4'
+      HXCPP_COMPILE_THREADS: '2'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -56,7 +56,7 @@ jobs:
           task_tools="$RUNNER_TEMP/luaslice-tools"
           mkdir -p "$task_tools/haxe" "$task_tools/neko" "$task_tools/haxelib"
           curl --fail --location --retry 3 https://github.com/HaxeFoundation/haxe/releases/download/4.3.7/haxe-4.3.7-osx.tar.gz -o "$task_tools/haxe.tar.gz"
-          curl --fail --location --retry 3 https://github.com/HaxeFoundation/neko/releases/download/v2-4-1/neko-2.4.1-osx64.tar.gz -o "$task_tools/neko.tar.gz"
+          curl --fail --location --retry 3 https://github.com/HaxeFoundation/neko/releases/download/v2-4-1/neko-2.4.1-osx-arm64.tar.gz -o "$task_tools/neko.tar.gz"
           tar -xzf "$task_tools/haxe.tar.gz" --strip-components=1 -C "$task_tools/haxe"
           tar -xzf "$task_tools/neko.tar.gz" --strip-components=1 -C "$task_tools/neko"
           echo "$task_tools/haxe" >> "$GITHUB_PATH"
@@ -86,7 +86,7 @@ jobs:
       - name: Build native libraries for macOS and iPhone
         run: |
           set -o pipefail
-          haxelib run lime rebuild mac -release 2>&1 | tee .work/ios-build/lime-mac.log
+          haxelib run lime rebuild mac -release -arm64 2>&1 | tee .work/ios-build/lime-mac.log
           haxelib run lime rebuild ios -release 2>&1 | tee .work/ios-build/lime-device.log
 
       - name: Build unsigned release IPA
@@ -105,10 +105,10 @@ jobs:
       - name: Build simulator release
         run: |
           set -o pipefail
-          haxelib run lime rebuild ios -release -simulator -64 2>&1 | tee .work/ios-build/lime-simulator.log
-          haxelib run lime update ios -release -simulator -64 2>&1 | tee .work/ios-build/simulator-project.log
+          haxelib run lime rebuild ios -release -simulator -arm64 2>&1 | tee .work/ios-build/lime-simulator.log
+          haxelib run lime update ios -release -simulator -arm64 2>&1 | tee .work/ios-build/simulator-project.log
           xcodebuild -project export/release/ios/LuaSlice.xcodeproj -scheme LuaSlice \
-            -configuration Release -sdk iphonesimulator -arch x86_64 \
+            -configuration Release -sdk iphonesimulator -arch arm64 \
             SYMROOT="$PWD/export/release/ios/build" CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" DEVELOPMENT_TEAM="" \
             build 2>&1 | tee .work/ios-build/simulator-build.log

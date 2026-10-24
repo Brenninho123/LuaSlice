@@ -155,6 +155,10 @@ jobs:
           restore-keys: |
             hxcpp-${{ runner.os }}-${{ github.job }}-${{ env.TOOLCHAIN_ID }}-
 
+      - &drop-precompiled-headers
+        name: Drop cached precompiled headers
+        run: find "$HXCPP_COMPILE_CACHE" -type d -name 'pch*' -prune -exec rm -rf {} +
+
       - name: Set up Java 17
         uses: actions/setup-java@v5
         with:
@@ -329,6 +333,7 @@ jobs:
       - *restore-libraries
       - *install-libraries
       - *restore-compile-cache
+      - *drop-precompiled-headers
 
       - name: Build Lime native libraries
         if: steps.libraries.outputs.cache-hit != 'true'
@@ -391,6 +396,7 @@ jobs:
       - *restore-libraries
       - *install-libraries
       - *restore-compile-cache
+      - *drop-precompiled-headers
 
       - name: Build Lime native libraries
         if: steps.libraries.outputs.cache-hit != 'true'

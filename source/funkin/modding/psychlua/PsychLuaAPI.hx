@@ -30,13 +30,6 @@ import sys.io.File;
 import openfl.display.BitmapData;
 import flixel.addons.transition.FlxTransitionableState;
 import funkin.graphics.FunkinSprite;
-import funkin.play.PlayStatePlaylist;
-import funkin.play.cutscene.VideoCutscene;
-import funkin.data.song.SongRegistry;
-import funkin.data.dialogue.ConversationRegistry;
-import funkin.ui.transition.LoadingState;
-import funkin.ui.story.StoryMenuState;
-import funkin.ui.freeplay.FreeplayState;
 import funkin.modding.PolymodHandler;
 using StringTools;
 
@@ -575,22 +568,22 @@ class PsychLuaAPI
         FlxTransitionableState.skipNextTransIn = true;
         FlxTransitionableState.skipNextTransOut = true;
       }
-      var story = PlayStatePlaylist.isStoryMode;
-      if (story) PlayStatePlaylist.reset();
+      var story = funkin.play.PlayStatePlaylist.isStoryMode;
+      if (story) funkin.play.PlayStatePlaylist.reset();
       host.game.deathCounter = 0;
-      if (story) FlxG.switchState(() -> new StoryMenuState());
-      else FlxG.switchState(() -> FreeplayState.build());
+      if (story) FlxG.switchState(() -> new funkin.ui.story.StoryMenuState());
+      else FlxG.switchState(() -> funkin.ui.freeplay.FreeplayState.build());
       return true;
     });
     add('loadSong', (name:String = null, difficultyNum:Int = -1) -> {
-      var song = name == null || name == '' ? host.game.currentSong : SongRegistry.instance.fetchEntry(songId(name));
+      var song = name == null || name == '' ? host.game.currentSong : funkin.data.song.SongRegistry.instance.fetchEntry(songId(name));
       if (song == null) throw 'Song not found: $name';
       var variation = host.game.currentVariation;
       var difficulties = song.listDifficulties(variation);
       var difficulty = difficultyNum >= 0 && difficultyNum < difficulties.length ? difficulties[difficultyNum] : host.game.currentDifficulty;
       if (!difficulties.contains(difficulty) && difficulties.length > 0) difficulty = difficulties[0];
       FlxG.sound.music?.stop();
-      LoadingState.loadPlayState({
+      funkin.ui.transition.LoadingState.loadPlayState({
         targetSong: song,
         targetDifficulty: difficulty,
         targetVariation: variation,
@@ -607,7 +600,7 @@ class PsychLuaAPI
     add('setTimeBarColors', (left:String = null, right:String = null) -> false);
     add('startDialogue', (file:String, music:String = null) -> {
       var id = Path.withoutExtension(Path.withoutDirectory(file ?? ''));
-      if (id == '' || !ConversationRegistry.instance.hasEntry(id)) throw 'Conversation not found: $file';
+      if (id == '' || !funkin.data.dialogue.ConversationRegistry.instance.hasEntry(id)) throw 'Conversation not found: $file';
       host.game.startConversation(id);
       return true;
     });
@@ -615,7 +608,7 @@ class PsychLuaAPI
       #if FEATURE_VIDEO_PLAYBACK
       var path = Paths.videos(file);
       if (!openfl.Assets.exists(path)) throw 'Video not found: $file';
-      VideoCutscene.play(path, forMidSong ? CutsceneType.MIDSONG : CutsceneType.STARTING);
+      funkin.play.cutscene.VideoCutscene.play(path, forMidSong ? funkin.play.cutscene.VideoCutscene.CutsceneType.MIDSONG : funkin.play.cutscene.VideoCutscene.CutsceneType.STARTING);
       return true;
       #else
       if (!forMidSong) host.game.startCountdown();
